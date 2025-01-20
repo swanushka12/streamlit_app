@@ -3,20 +3,19 @@ import numpy as np
 import math
 import plotly.graph_objects as go
 import plotly.io as pio
-import signal_noise_generator # модуль генерации сигналов у Артема и Саши
-from signal_noise_generator.signal_generator.signals import single_pulse, unit_step, delta_function
+import signals
 
-# добавление кнопок  
-if 'button_2' not in st.session_state: st.session_state.button_1 = False # Выполнить формирование сигнала
+# добавление кнопок   
+if 'button_1' not in st.session_state: st.session_state.button_1 = False # Выполнить формирование сигнала
   
 if 'button_2' not in st.session_state: st.session_state.button_2 = False # Спектр сигнала
 
 if 'image_count' not in st.session_state: st.session_state.image_count = 1
-    
-# функции включения и отключения нажатия кнопок
+
+# функции вкл и откл кнопок
 def buttons_off():
-    st.session_state.button_1 = False
-    st.session_state.button_2 = False
+    st.session_state.button_1 = False # кнопка 'Выполнить формирование сигнала'
+    st.session_state.button_2 = False # кнопка 'Спектр сигнала'
     
 def button_1_on(): st.session_state.button_1 = True
 
@@ -25,58 +24,6 @@ def button_1_off(): st.session_state.button_1 = False
 def button_2_on(): st.session_state.button_2 = True
 
 def button_2_off(): st.session_state.button_2 = False 
-
-#def single_pulse(T, T_N, delta_t):
-#    t = np.arange(0, T_N, delta_t)
-#    s = np.zeros_like(t)
-#    s[t < T] = 1
-#    return t, s
-
-#def delta_function(A, T, T_N, delta_t):
-#    t = np.arange(0, T_N, delta_t)
-#    s = np.zeros_like(t)
-#   s[np.abs(t - T) < delta_t / 2] = A
-#    return t, s
-
-#def unit_step(T, T_N, delta_t):
-#    t = np.arange(0, T_N, delta_t)
-#    s = np.zeros_like(t)
-#    s[t >= T] = 1
-#    return t, s
-
-# импульсы
-def generate_unipolar_pulses(signal_duration, pulse_duration, step):
-    t = np.arange(0.0, signal_duration, step)
-    signal = np.zeros_like(t)
-    for pulse_num in range(int(signal_duration / pulse_duration)):
-        start = int(pulse_num * pulse_duration / step)
-        end = int(start + pulse_duration / 2 / step)
-        signal[start:end] = 1
-    return t, signal
-
-def generate_bipolar_pulses(signal_duration, pulse_duration, step):
-    t = np.arange(0.0, signal_duration, step)
-    signal = np.empty_like(t)
-    for pulse_num in range(int(signal_duration / pulse_duration)):
-        start = int(pulse_num * pulse_duration / step)
-        end_pulse = int(start + pulse_duration / 2 / step)
-        end = int(start + pulse_duration / step)+1
-        signal[start:end_pulse] = 1
-        signal[end_pulse:end] = -1
-    return t, signal
-         
-# функция генерации синусоидального сигнала
-def generate_harmonic(frequency, duration, step, shift):
-    t = np.arange(0.0, duration + 0.001, step)
-    if shift != 0: signal = np.sin(2 * np.pi * frequency * t + shift)
-    else: signal = np.sin(2 * np.pi * frequency * t)
-    return t, signal
-
-# функция генерации полигармонического сигнала
-def generate_poliharmonic(frequencies, duration, step):
-    t = np.arange(0.0, duration + 0.001, step)
-    signal = sum(np.sin(2 * np.pi * f * t) for f in frequencies)
-    return t, signal
    
 # основная часть 
 st.markdown('## Временное и частотное представление сигналов')
@@ -96,8 +43,7 @@ if signal_type == 'Периодический':
         shift = st.number_input('Фазовый сдвиг 0,0 ≤ phi ≤ 6,28 (рад)', min_value = 0.0, max_value = 6.28, value = 0.0, step = 0.01, format = "%0.2f")
         frequency = round(1 / period, 3)        
         y_tick = 0.2; x_tick = round(duration / 12, 1) 
-        t, signal = generate_harmonic(frequency, duration, step, shift)
-        points = len(signal)
+        t, signal = signals.generate_harmonic(frequency, duration, step, shift)
         
     elif signal_kind == 'Полигармонический':
         st.write('Количество гармоник 1 ≤ KG ≤ 7')
@@ -109,8 +55,7 @@ if signal_type == 'Периодический':
                 duration = st.number_input('Интервал задания сигнала 0,001 ≤ TN ≤ 10 (с)', min_value = 0.001, max_value = 10.0, value = 1.2, step = 0.001, format = "%0.3f")
                 step = st.number_input('Шаг дискретизации 0,001 ≤ Δt ≤ 2,0 (c)', min_value = 0.001, max_value = 2.0, value = round((1 / min(frequencies)) / 62.8, 3), step = 0.001, format = "%0.3f")
                 y_tick = 0.5; x_tick = round(duration / 12, 1)
-                t, signal = generate_poliharmonic(frequencies, duration, step)
-                points = len(signal)
+                t, signal = signals.generate_poliharmonic(frequencies, duration, step)
             else: 
                 st.warning('Количество гармоник превышает 7') 
                 frequencies = [0] 
@@ -126,10 +71,9 @@ if signal_type == 'Периодический':
 
         signal_duration = pulse_duration * pulses_count;
         if signal_interval == '5 * KG * T': signal_duration *= 5
-        if signal_kind == 'Однополярные импульсы': t, signal = generate_unipolar_pulses(signal_duration, pulse_duration, step)
-        else: t, signal = generate_bipolar_pulses(signal_duration, pulse_duration, step)
+        if signal_kind == 'Однополярные импульсы': t, signal = signals.generate_unipolar_pulses(signal_duration, pulse_duration, step)
+        else: t, signal = signals.generate_bipolar_pulses(signal_duration, pulse_duration, step)
         y_tick = 0.2; x_tick = round(signal_duration / 12, 1)
-        points = len(signal)
     
 elif signal_type == 'Апериодический':
     signal_kind = st.selectbox('Вид сигнала', ('Затухающая синусоида'), on_change = buttons_off)
@@ -149,7 +93,7 @@ else:  # cпециальный
             interval = 10 * duration
         y_tick = 0.1;
         x_tick = round(interval / 10, 1)
-        t, signal = single_pulse(duration, interval, step)
+        t, signal = signals.single_pulse(duration, interval, step)
         points = len(signal)
     elif signal_kind == 'Единичный скачок' :
         moment = st.number_input('Момент скачка 1 <= T <= 20 (c)', min_value=1, max_value=20, value=2, step=1, format="%d")
@@ -159,7 +103,6 @@ else:  # cпециальный
         y_tick = 1;
         x_tick = round(moment / 20, 1)
         t, signal = unit_step(0, moment + 0.001, step)
-        points = len(signal)
     else:
         amplitude = st.selectbox('Амплитуда', ('1000', '2000', '3000', '4000', '5000', '6000', '7000', '8000', '9000', '10000'))
         moment = st.selectbox('Момент скачка (c)', ('0,01', '0,1'))
@@ -177,8 +120,7 @@ else:  # cпециальный
             duration = 10 * moment
         y_tick = 1000;
         x_tick = round(duration / 20, 1)
-        t, signal = delta_function(amplitude, moment, duration + 0.001, step)
-        points = len(signal)
+        t, signal = signals.delta_function(amplitude, moment, duration + 0.001, step)
         
 # формирование сигнала             
 st.button('Выполнить формирование сигнала', on_click = button_1_on)
@@ -189,7 +131,8 @@ if st.session_state.button_1: # кнопка нажата
     fig.update_xaxes(title_text = 'Время (c)', showgrid = True, title_font_color = 'black', linecolor = 'black', dtick = x_tick, mirror = True)
     fig.update_yaxes(title_text = 'Амплитуда', showgrid = True, title_font = dict(color = 'black'), linecolor = 'black', dtick = y_tick, mirror = True)                           
     # сохранение и копирование
-    print_points, save, copy = st.columns([8, 1, 1])  
+    print_points, save, copy = st.columns([8, 1, 1])
+    points = len(signal) # вместо   
     print_points.write(f'Количество точек = {points}')
     with save:
         image = pio.to_image(fig, format = 'jpg', width = 1050, height = 675)
@@ -206,36 +149,44 @@ if st.session_state.button_1: # кнопка нажата
     if st.session_state.button_2:
         bpf_select = st.selectbox('Число БПФ', ('128', '256', '256', '512', '1024', '2048', '4096'), index = 4) 
         bpf = int(bpf_select) 
-        spectrum = None
-        # FFT сигнала
-        #if bpf > points: fft_signal = np.pad(signal, (0, bpf - points), mode = 'constant') # дозаполнение отчетов '0'       
-        #else: fft_signal = signal[:bpf] 
-        #fft_val = np.fft.fft(fft_signal, n = bpf)             
+        # FFT сигнала            
         fft_val = np.fft.fft(signal, n = bpf)             
         fft_freq = np.fft.fftfreq(bpf, step)         
         indexes = (fft_freq >= 0) # только неотрицательные частоты
         fft_val = fft_val[indexes]           
         fft_freq = fft_freq[indexes] 
         fft_freq = fft_freq * 2 * np.pi # перевод в рад/с
+        # нормирование отчетов
+        fft_val /= bpf
+        fft_val[1:] = 2 * fft_val[1:]
+        x_val = fft_freq
+        x_title = 'Частота (рад/с)' # заменила на рад/с, потому что умножили на 2*pi
+        y_title = ''
         spectrum = st.radio('**Спектры:**', ['Вещественный', 'Мнимый', 'Комплексный', 'Амплитудный', 'Фазовый'], index = None)
         if spectrum == 'Вещественный': 
             y_val = np.real(fft_val)
-        else: #elif spectrum == 'Мнимый':
+        elif spectrum == 'Мнимый':
             y_val = np.imag(fft_val)          
+        elif spectrum == 'Комплексный':
+            x_val = np.real(fft_val)
+            x_title = 'Re'
+            y_val = np.imag(fft_val)
+            y_title = 'Im'
+        elif spectrum == 'Амплитудный':
+            y_val = np.abs(fft_val)        
         # график спектра
         if spectrum != None:
             fig_1 = go.Figure()  
             fig_1.add_trace(go.Scatter(x = fft_freq, y = y_val, mode = 'lines'))
             fig_1.update_layout(title = f'{spectrum} спектр\n', title_x = 0.45, margin = dict(l=15, r=30, t=60, b=20), template = 'ggplot2', width = 1200, height = 500)
-            fig_1.update_xaxes(title_text = 'Частота (рад/c)', showgrid = True, title_font_color = 'black', linecolor = 'black', mirror = True)
-            fig_1.update_yaxes(showgrid = True, title_font = dict(color = 'black'), linecolor = 'black', mirror = True)
+            fig_1.update_xaxes(title_text = x_title, showgrid = True, title_font_color = 'black', linecolor = 'black', mirror = True)
+            fig_1.update_yaxes(title_text = y_title, showgrid = True, title_font = dict(color = 'black'), linecolor = 'black', mirror = True)
             # сохранение и копирование
             print_points_1, save_1, copy_1 = st.columns([8, 1, 1])  
-            print_points_1.write('')
+            #print_points_1.write('')
             with save_1:
                 image = pio.to_image(fig_1, format = 'jpg', width = 1050, height = 675)
-                if st.download_button(label = '', icon = ':material/download:', data = image, file_name = f'{spectrum}_спектр_сигнала_{st.session_state.image_count}.jpg'):
-                    st.session_state.image_count += 1            
+                st.download_button(label = '', icon = ':material/download:', data = image, file_name = f'{spectrum}_спектр_сигнала_{st.session_state.image_count}.jpg')            
             with copy_1:
                 st.button(label = '', icon = ":material/file_copy:", key = 'copy_1')
                     #write_p.success('График скопирован')
