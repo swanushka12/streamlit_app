@@ -78,6 +78,16 @@ if signal_type == 'Периодический':
 elif signal_type == 'Апериодический':
     signal_kind = st.selectbox('Вид сигнала', ('Затухающая синусоида'), on_change = buttons_off)
 
+    if signal_kind == 'Затухающая синусоида':
+        alpha = st.number_input('Коэффициент затухания α', min_value=0.1, max_value=10.0, value=1.0, step=0.1, format="%0.1f")
+        frequency = st.number_input('Частота f (Гц)', min_value=0.1, max_value=50.0, value=5.0, step=0.1, format="%0.1f")
+        duration = st.number_input('Длительность сигнала T (с)', min_value=0.1, max_value=10.0, value=2.0, step=0.1, format="%0.1f")
+        step = st.number_input('Шаг дискретизации Δt (с)', min_value=0.001, max_value=0.1, value=0.01, step=0.001, format="%0.3f")
+        t, signal = signals.generate_damped_sine(alpha, frequency, duration, step)
+        y_tick = 0.5
+        x_tick = round(duration / 12, 1)
+        points = len(signal)
+
 else:  # cпециальный
     signal_kind = st.selectbox('Вид сигнала', ('Одиночный импульс', 'Единичный скачок', 'Дельта-функция'),
                 on_change=buttons_off)
@@ -155,24 +165,28 @@ if st.session_state.button_1: # кнопка нажата
         fft_val = fft_val[indexes]           
         fft_freq = fft_freq[indexes] 
         fft_freq = fft_freq * 2 * np.pi # перевод в рад/с
-        # нормирование отчетов
-        fft_val /= bpf
-        fft_val[1:] = 2 * fft_val[1:]
         x_val = fft_freq
         x_title = 'Частота (рад/с)' # заменила на рад/с, потому что умножили на 2*pi
         y_title = ''
         spectrum = st.radio('**Спектры:**', ['Вещественный', 'Мнимый', 'Комплексный', 'Амплитудный', 'Фазовый'], index = None)
-        if spectrum == 'Вещественный': 
-            y_val = np.real(fft_val)
-        elif spectrum == 'Мнимый':
-            y_val = np.imag(fft_val)          
-        elif spectrum == 'Комплексный':
-            x_val = np.real(fft_val)
-            x_title = 'Re'
-            y_val = np.imag(fft_val)
-            y_title = 'Im'
-        elif spectrum == 'Амплитудный':
-            y_val = np.abs(fft_val)        
+        if spectrum == 'Амплитудный':
+            y_val = np.abs(fft_val)
+            y_val /= max(y_val)
+        elif spectrum == 'Фазовый':
+            y_val = np.angle(fft_val)
+            y_title = 'Phase'
+        else:
+            fft_val /= bpf
+            fft_val[1:] = 2 * fft_val[1:]
+            if spectrum == 'Вещественный': 
+                y_val = np.real(fft_val)
+            elif spectrum == 'Мнимый':
+                y_val = np.imag(fft_val)          
+            elif spectrum == 'Комплексный':
+                x_val = np.real(fft_val)
+                x_title = 'Re'
+                y_val = np.imag(fft_val)
+                y_title = 'Im'      
         # график спектра
         if spectrum != None:
             fig_1 = go.Figure()  
