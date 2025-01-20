@@ -176,7 +176,7 @@ if st.session_state.button_1: # кнопка нажата
         # график спектра
         if spectrum != None:
             fig_1 = go.Figure()  
-            fig_1.add_trace(go.Scatter(x = fft_freq, y = y_val, mode = 'lines'))
+            fig_1.add_trace(go.Scatter(x = x_val, y = y_val, mode = 'lines'))
             fig_1.update_layout(title = f'{spectrum} спектр\n', title_x = 0.45, margin = dict(l=15, r=30, t=60, b=20), template = 'ggplot2', width = 1200, height = 500)
             fig_1.update_xaxes(title_text = x_title, showgrid = True, title_font_color = 'black', linecolor = 'black', mirror = True)
             fig_1.update_yaxes(title_text = y_title, showgrid = True, title_font = dict(color = 'black'), linecolor = 'black', mirror = True)
