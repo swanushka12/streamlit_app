@@ -53,3 +53,8 @@ def generate_poliharmonic(frequencies, duration, step):
     signal = sum(np.sin(2 * np.pi * f * t) for f in frequencies)
     return t, signal
 
+# Функция генерации затухающей синусоиды
+def generate_damped_sine(alpha, frequency, duration, step):
+    t = np.arange(0.0, duration + 0.001, step)
+    signal = np.exp(-alpha * t) * np.sin(2 * np.pi * frequency * t)
+    return t, signal
