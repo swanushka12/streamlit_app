@@ -102,7 +102,7 @@ else:  # cпециальный
                                step=0.001, format="%0.3f")
         y_tick = 1;
         x_tick = round(moment / 20, 1)
-        t, signal = unit_step(0, moment + 0.001, step)
+        t, signal = signals.unit_step(0, moment + 0.001, step)
     else:
         amplitude = st.selectbox('Амплитуда', ('1000', '2000', '3000', '4000', '5000', '6000', '7000', '8000', '9000', '10000'))
         moment = st.selectbox('Момент скачка (c)', ('0,01', '0,1'))
