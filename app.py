@@ -142,8 +142,7 @@ if st.session_state.button_1: # кнопка нажата
         st.button(label = '', icon = ":material/file_copy:")
             #write_p.success('График скопирован')
     # график сигнала     
-    fig.show()
-    st.plotly_chart(fig)                
+    st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
     # спектры
     st.button('Спектр сигнала', on_click = button_2_on)
     if st.session_state.button_2:
@@ -185,10 +184,9 @@ if st.session_state.button_1: # кнопка нажата
             print_points_1, save_1, copy_1 = st.columns([8, 1, 1])  
             #print_points_1.write('')
             with save_1:
-                image = pio.to_image(fig_1, format = 'jpg', width = 1050, height = 675)
+                image = pio.to_image(fig_1, format = 'jpg', width = 1200, height = 500)
                 st.download_button(label = '', icon = ':material/download:', data = image, file_name = f'{spectrum}_спектр_сигнала_{st.session_state.image_count}.jpg')            
             with copy_1:
                 st.button(label = '', icon = ":material/file_copy:", key = 'copy_1')
                     #write_p.success('График скопирован')
-            fig_1.show()
             st.plotly_chart(fig_1) 
