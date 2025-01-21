@@ -36,9 +36,9 @@ if signal_type == 'Периодический':
     
     if signal_kind == 'Гармонический':
         period = st.number_input('Период 0,628 ≤ T ≤ 6,28 (с)', min_value = 0.628, max_value = 6.28, value = 0.628, step = 0.001, format = "%0.3f")
-        duration = st.selectbox('Интервал задания сигнала (с)', ('1,2 * T', '10 * T'))
+        duration = st.selectbox('Интервал задания сигнала (с)', ('1,2 * T', '20 * T'))
         if duration == '1,2 * T': duration = round(1.2 * period, 3)
-        else: duration = 10 * period
+        else: duration = 20 * period
         step = st.number_input('Шаг дискретизации 0,001 ≤ Δt ≤ 2,0 (c)', min_value = 0.001, max_value = 2.0, value = round(period / 62.8, 3), step = 0.001, format = "%0.3f")
         shift = st.number_input('Фазовый сдвиг 0,0 ≤ phi ≤ 6,28 (рад)', min_value = 0.0, max_value = 6.28, value = 0.0, step = 0.01, format = "%0.2f")
         frequency = round(1 / period, 3)        
@@ -67,7 +67,7 @@ if signal_type == 'Периодический':
         pulses_count = st.number_input('Количество импульсов в последовательности 3 ≤ KG ≤ 7', min_value = 3, max_value = 7, value = 3, step = 1, format = "%d")
         pulse_duration = st.number_input('Длительность импульса 0,628 ≤ T ≤ 6,28 (с)', min_value = 0.628, max_value = 6.28, value = 0.628, step = 0.001, format = "%0.3f")
         signal_interval = st.selectbox('Интервал задания сигнала (с)', ('KG * T', '5 * KG * T'))
-        step = st.number_input('Шаг дискретизации 0,001 ≤ Δt ≤ 2,0 (c)', min_value = 0.001, max_value = 2.0, value = 0.030, step = 0.001, format = "%0.3f")
+        step = st.number_input('Шаг дискретизации 0,001 ≤ Δt ≤ 2,0 (c)', min_value = 0.001, max_value = 2.0,  value = round(pulse_duration / 62.8, 3), step = 0.001, format = "%0.3f")
 
         signal_duration = pulse_duration * pulses_count;
         if signal_interval == '5 * KG * T': signal_duration *= 5
@@ -79,10 +79,10 @@ elif signal_type == 'Апериодический':
     signal_kind = st.selectbox('Вид сигнала', ('Затухающая синусоида'), on_change = buttons_off)
 
     if signal_kind == 'Затухающая синусоида':
-        alpha = st.number_input('Коэффициент затухания α', min_value=0.1, max_value=10.0, value=1.0, step=0.1, format="%0.1f")
-        frequency = st.number_input('Частота f (Гц)', min_value=0.1, max_value=50.0, value=5.0, step=0.1, format="%0.1f")
-        duration = st.number_input('Длительность сигнала T (с)', min_value=0.1, max_value=10.0, value=2.0, step=0.1, format="%0.1f")
-        step = st.number_input('Шаг дискретизации Δt (с)', min_value=0.001, max_value=0.1, value=0.01, step=0.001, format="%0.3f")
+        alpha = st.number_input('Коэффициент затухания 0,1 ≤ α  ≤ 10,0', min_value=0.1, max_value=10.0, value=1.0, step=0.1, format="%0.1f")
+        frequency = st.number_input('Частота 0,1 ≤ f  ≤ 50,0 (Гц)', min_value=0.1, max_value=50.0, value=5.0, step=0.1, format="%0.1f")
+        duration = st.number_input('Длительность сигнала 0,1  ≤ T  ≤ 10,0 (с)', min_value=0.1, max_value=10.0, value=2.0, step=0.1, format="%0.1f")
+        step = st.number_input('Шаг дискретизации 0,001  ≤ Δt  ≤ 0,1 (с)', min_value=0.001, max_value=0.1, value=0.01, step=0.001, format="%0.3f")
         t, signal = signals.generate_damped_sine(alpha, frequency, duration, step)
         y_tick = 0.5
         x_tick = round(duration / 12, 1)
@@ -94,13 +94,13 @@ else:  # cпециальный
     if signal_kind == 'Одиночный импульс' :
         duration = st.number_input('Длительность импульса 1,57 ≤ T ≤ 6,28 (с)', min_value=1.57, max_value=6.28, value=1.57,
                                  step=0.01, format="%0.2f")
-        interval = st.selectbox('Интервал задания сигнала (с)', ('1,2 * T', '10 * T'))
+        interval = st.selectbox('Интервал задания сигнала (с)', ('1,2 * T', '20 * T'))
         step = st.number_input('Шаг дискретизации 0,001 ≤ Δt ≤ 2,0 (c)', min_value=0.001, max_value=2.0, value=round(duration / 62.8, 3),
                                step=0.001, format="%0.3f")
         if interval == '1,2 * T':
             interval = round(1.2 * duration, 3)
         else:
-            interval = 10 * duration
+            interval = 20 * duration
         y_tick = 0.1;
         x_tick = round(interval / 10, 1)
         t, signal = signals.single_pulse(duration, interval, step)
@@ -140,23 +140,20 @@ if st.session_state.button_1: # кнопка нажата
     fig.update_layout(title = 'Вид сигнала\n', title_x = 0.49, margin = dict(l=15, r=30, t=60, b=20), template = 'plotly', width = 1200, height = 500)
     fig.update_xaxes(title_text = 'Время (c)', showgrid = True, title_font_color = 'black', linecolor = 'black', dtick = x_tick, mirror = True)
     fig.update_yaxes(title_text = 'Амплитуда', showgrid = True, title_font = dict(color = 'black'), linecolor = 'black', dtick = y_tick, mirror = True)                           
-    # сохранение и копирование
-    print_points, save, copy = st.columns([8, 1, 1])
-    points = len(signal) # вместо   
+    # сохранение
+    print_points, save = st.columns([9, 1])
+    points = len(signal)    
     print_points.write(f'Количество точек = {points}')
     with save:
         image = pio.to_image(fig, format = 'jpg', width = 1050, height = 675)
         if st.download_button(label = '', icon = ':material/download:', data = image, file_name = f'График_сигнала_{st.session_state.image_count}.jpg'):
             st.session_state.image_count += 1            
-    with copy: # надо сделать
-        st.button(label = '', icon = ":material/file_copy:")
-            #write_p.success('График скопирован')
     # график сигнала     
     st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
     # спектры
     st.button('Спектр сигнала', on_click = button_2_on)
     if st.session_state.button_2:
-        bpf_select = st.selectbox('Число БПФ', ('128', '256', '512', '1024', '2048', '4096'), index = 3) 
+        bpf_select = st.selectbox('Число БПФ', ('128', '256', '256', '512', '1024', '2048', '4096'), index = 4) 
         bpf = int(bpf_select) 
         # FFT сигнала            
         fft_val = np.fft.fft(signal, n = bpf)             
@@ -194,13 +191,9 @@ if st.session_state.button_1: # кнопка нажата
             fig_1.update_layout(title = f'{spectrum} спектр\n', title_x = 0.45, margin = dict(l=15, r=30, t=60, b=20), template = 'ggplot2', width = 1200, height = 500)
             fig_1.update_xaxes(title_text = x_title, showgrid = True, title_font_color = 'black', linecolor = 'black', mirror = True)
             fig_1.update_yaxes(title_text = y_title, showgrid = True, title_font = dict(color = 'black'), linecolor = 'black', mirror = True)
-            # сохранение и копирование
-            print_points_1, save_1, copy_1 = st.columns([8, 1, 1])  
-            #print_points_1.write('')
+            # сохранение
+            column_1, save_1 = st.columns([9, 1])  
             with save_1:
                 image = pio.to_image(fig_1, format = 'jpg', width = 1200, height = 500)
                 st.download_button(label = '', icon = ':material/download:', data = image, file_name = f'{spectrum}_спектр_сигнала_{st.session_state.image_count}.jpg')            
-            with copy_1:
-                st.button(label = '', icon = ":material/file_copy:", key = 'copy_1')
-                    #write_p.success('График скопирован')
             st.plotly_chart(fig_1) 
