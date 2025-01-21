@@ -156,7 +156,7 @@ if st.session_state.button_1: # кнопка нажата
     # спектры
     st.button('Спектр сигнала', on_click = button_2_on)
     if st.session_state.button_2:
-        bpf_select = st.selectbox('Число БПФ', ('128', '256', '256', '512', '1024', '2048', '4096'), index = 4) 
+        bpf_select = st.selectbox('Число БПФ', ('128', '256', '512', '1024', '2048', '4096'), index = 3) 
         bpf = int(bpf_select) 
         # FFT сигнала            
         fft_val = np.fft.fft(signal, n = bpf)             
